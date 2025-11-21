@@ -7,6 +7,7 @@ const Joi = require('joi');
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
+  role: Joi.string().valid('user', 'admin').default('user'),
   password: Joi.string().min(6).max(50).required()
 });
 
@@ -21,7 +22,7 @@ exports.register = async (req, res) => {
     const { error } = registerSchema.validate(req.body);
     if (error) return res.status(400).json({ answer: "0", comment: error.details[0].message });
 
-    const { name, email, password } = req.body;
+    const { name, email, password , role} = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const exist = await User.findOne({ email });
@@ -34,6 +35,7 @@ exports.register = async (req, res) => {
     const user = await User.create({
       name,
       email,
+      role,
       password: hashedPassword,
     });
 
@@ -65,10 +67,12 @@ exports.login = async (req, res) => {
       comment: "Login successful",
       result: {
         id: user._id,
+        role: user.role,
         name: user.name,
         email: user.email,
-        token
+     
       },
+         token,
       
     });
 
